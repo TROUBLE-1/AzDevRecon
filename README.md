@@ -43,7 +43,7 @@ AzDevRecon is a **web-based enumeration tool** designed for **offensive security
    Open your browser and go to:
 
    ```
-   http://127.0.0.1:5000
+   http://localhost
    ```
 
 ---

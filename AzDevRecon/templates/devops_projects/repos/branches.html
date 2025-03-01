@@ -1,0 +1,131 @@
+{% extends "devops_projects/layout.html" %}
+
+{% block body %}
+
+<div class="d-flex">
+    <div id="repos-list" class="w-25 p-3 border">
+        <h3>Repositories</h3>
+        <ul id="repos" class="list-group"></ul>
+    </div>
+    <div id="commits-list" class="w-100 p-3 border">
+        <h3>Branches</h3>
+        <table id="branches-table" class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Branch Name</th>
+                    <th>Object ID</th>
+                    <th>Creator</th>
+                    <th>Avatar</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="codeModal" tabindex="-1" aria-labelledby="codeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="codeModalLabel">Commit Changes</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <pre id="codeChanges" class="bg-light p-3"></pre>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .list-group-item {
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    .list-group-item:hover {
+        background-color: #c8c8c8;
+        color: #000000;
+    }
+
+    .list-group-item.active {
+        background-color: #a1a1a1;
+        color: white;
+    }
+
+    .list-group-item.selected {
+        background-color: #a1a1a1;
+        color: white;
+    }
+</style>
+
+<script>
+    const reposLink = document.getElementById('repos-menu');
+    if (reposLink) {
+        reposLink.classList.add('active');
+    }
+
+    const filesLink = document.getElementById('branches-link');
+    if (filesLink) {
+        filesLink.classList.add('active');
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        fetch("{{ url_for('list_repositories', org_id=org_id, project_id=project_id) }}")
+            .then(response => response.json())
+            .then(data => {
+                const reposList = document.getElementById('repos');
+                data.forEach(repo => {
+                    const li = document.createElement('li');
+                    li.classList.add('list-group-item');
+                    li.textContent = repo.name;
+                    li.dataset.repoId = repo.id;
+                    li.addEventListener('click', () => {
+                        document.querySelectorAll('#repos .list-group-item').forEach(item => item.classList.remove('selected'));
+                        li.classList.add('selected');
+
+                        fetch("{{ url_for('list_repo_branches', org_id=org_id, project_id=project_id) }}" + "?repoId=" + repo.id)
+                            .then(response => response.json())
+                            .then(data => {
+                                const branchesTableBody = document.querySelector('#branches-table tbody');
+                                branchesTableBody.innerHTML = '';
+
+                                data.value.forEach(branch => {
+                                    const row = document.createElement('tr');
+
+                                    const branchNameCell = document.createElement('td');
+                                    branchNameCell.textContent = branch.name;
+
+                                    const objectIdCell = document.createElement('td');
+                                    objectIdCell.textContent = branch.objectId;
+
+                                    const creatorCell = document.createElement('td');
+                                    creatorCell.textContent = branch.creator.displayName;
+
+                                    const avatarCell = document.createElement('td');
+                                    const avatarImg = document.createElement('img');
+                                    avatarImg.src = branch.creator._links.avatar.href;
+                                    avatarImg.alt = branch.creator.displayName;
+                                    avatarImg.style.width = '32px';
+                                    avatarImg.style.height = '32px';
+                                    avatarImg.style.borderRadius = '50%';
+                                    avatarCell.appendChild(avatarImg);
+
+                                    row.appendChild(branchNameCell);
+                                    row.appendChild(objectIdCell);
+                                    row.appendChild(creatorCell);
+                                    row.appendChild(avatarCell);
+
+                                    branchesTableBody.appendChild(row);
+                                });
+                            });
+                    });
+                    reposList.appendChild(li);
+                });
+            });
+    });
+</script>
+
+{% endblock %}

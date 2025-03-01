@@ -1,0 +1,58 @@
+{% extends "devops_projects/layout.html" %}
+{% block body %}
+<div class="d-flex">
+    <!-- Left side: Repositories -->
+    <div class="repo-list col-md-3 border-right">
+        <h3>Repositories</h3>
+        <ul class="list-group">
+            {% for repo in repos["value"] %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <a href="#" class="repo-name nav-link" onclick="fetchFiles('{{ repo.id }}', '{{ repo.name }}')">{{ repo.name }}</a>
+                </li>
+            {% else %}
+                <p class="text-center text-muted">No repositories found in this project.</p>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Right side: Files -->
+    <div id="list-files-sections" class="col-md-12">
+        <h3>Files</h3>
+        <p class="text-muted">Select a repository to view its files.</p>
+    </div>
+</div>
+
+<script>
+    const reposLink = document.getElementById('repos-menu');
+    if (reposLink) {
+        reposLink.classList.add('active');
+    }
+
+    const filesLink = document.getElementById('files-link');
+    if (filesLink) {
+        filesLink.classList.add('active');
+    }
+
+    function fetchFiles(repoId, repoName) {
+        fetch(`repo/${repoId}/files?repoName=${repoName}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'text/html',
+            },
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.text();
+        })
+        .then(html => {
+            document.getElementById('list-files-sections').innerHTML = html;
+        })
+        .catch(error => {
+            console.error('There was a problem with the fetch operation:', error);
+            document.getElementById('list-files-sections').innerHTML = '<p class="text-danger">Failed to load files. Please try again.</p>';
+        });
+    }
+</script>
+{% endblock %}

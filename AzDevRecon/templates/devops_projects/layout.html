@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Files - Azure DevOps</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <link rel="icon" type="image/png" href="/static/images/AzDevRecon.png">
+    <style>
+        body {
+            display: flex;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;  /* Fix horizontal scrolling */
+        }
+        
+        .sidebar {
+            width: 250px;
+            background-color: #343a40;
+            color: #fff;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 1000; /* Ensure sidebar stays above */
+        }
+        
+        .sidebar a {
+            color: #fff;
+            text-decoration: none;
+            padding: 10px 15px;
+            display: block;
+            border-radius: 4px;
+        }
+        
+        .sidebar a:hover, .sidebar a.active {
+            background-color: #495057;
+        }
+        
+        .main-content {
+            margin-left: 250px;
+            flex-grow: 1;
+            padding: 20px;
+            min-width: 0; /* Prevent content overflow */
+        }
+        
+        .navbar {
+            margin-left: 250px;
+            width: calc(100% - 250px);
+            position: relative; /* Ensure navbar doesn't go under sidebar */
+            z-index: 1050; /* Ensure navbar stays on top */
+        }
+        
+        /* Fix navbar overlapping on smaller screens */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 200px;
+            }
+            .navbar {
+                margin-left: 200px;
+                width: calc(100% - 200px);
+            }
+            .main-content {
+                margin-left: 200px;
+            }
+        }
+        
+        /* For extra small screens, make sidebar collapsible */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+            .navbar, .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+        }
+        .table-responsive {
+            max-width: 100%;  /* Ensures the table never overflows */
+            overflow-x: auto; /* Allows horizontal scrolling if needed */
+            white-space: nowrap; /* Prevents text wrapping */
+        }
+                
+        th, td {
+            white-space: nowrap; /* Prevents text from breaking into new lines */
+        }
+        
+        
+        
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <a href="{{url_for('dashboard')}}"><h4>DevOps Project</h4></a>
+        <a id="boards-menu"  class="text-left">
+            <img alt="" src="https://cdn.vsassets.io/ext/ms.vss-work-web/common-content/Content/Nav-Plan.XB8qU6.png" height="30">
+            <span style="padding-left: 10px;">Boards</span>
+        </a>
+        <div id="boards-submenu" class="">
+            <a id="work-items-link" href="#">Work Items</a>
+            <a id="boards-link" href="#">Boards</a>
+            <a id="backlogs-link" href="#">Backlogs</a>
+            <a id="sprints-link" href="#">Sprints</a>
+            <a id="queries-link" href="#">Queries</a>
+            <a id="delivery-plans-link" href="#">Delivery Plans</a>
+            <a id="analytics-view-link" href="#">Analytics View</a>
+        </div>
+        <a id="repos-menu">
+            <img alt="" src="https://cdn.vsassets.io/ext/ms.vss-code-web/common-content/Nav-Code.0tJczm.png" height="30">
+            <span style="padding-left: 10px;">Repos</span>
+        </a>
+        <div id="repos-submenu">
+            <a id="files-link" href="{{ url_for('repo_files', org_id=org_id, project_id=project_id) }}">Files</a>
+            <a id="commits-link" href="{{ url_for('repo_commits', org_id=org_id, project_id=project_id) }}">Commits</a>
+            <a id="branches-link" href="{{ url_for('get_branches', org_id=org_id, project_id=project_id) }}">Branches</a>
+<!--            <a id="tags-link" href="#">Tags</a>
+            <a id="pull-requests-link" href="#">Pull Requests</a>
+            <a id="advanced-security-link" href="#">Advanced Security</a>-->
+        </div>
+        <a id="pipelines-menu">
+            <img alt="" src="https://cdn.vsassets.io/ext/ms.vss-build-web/common-library/Nav-Launch.3tiJhd.png" height="30">
+            <span style="padding-left: 10px;">Pipelines</span>
+        </a>
+        <div id="pipelines-submenu" class="">
+            <a id="pipelines-link" href="{{ url_for('get_pipeline', org_id=org_id, project_id=project_id) }}">Pipelines</a>
+            <a id="library-link" href="{{ url_for('get_pipeline_library', org_id=org_id, project_id=project_id) }}">Library</a>
+        </div>
+        <a id="test-plans-menu">
+            <img alt="" src="https://cdn.vsassets.io/ext/ms.vss-test-web/common-content/Nav-Test.CLbC8L.png" height="30">
+            <span style="padding-left: 10px;">Test Plans</span>
+        </a>
+        <div id="test-plans-submenu" class="">
+            <a id="test-plans-link" href="#">Test Plans</a>
+            <a id="progress-report-link" href="#">Progress Report</a>
+            <a id="runs-link" href="#">Runs</a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="w-100">
+        <!-- Navbar -->
+        <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+            <div class="container-fluid">
+                <!-- Breadcrumb Navigation -->
+                <div class="d-flex align-items-center">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a href="/" class="text-primary fw-semibold">Organization</a></li>
+                        <li class="breadcrumb-item"><a href="projects.html" class="text-primary fw-semibold">Projects</a></li>
+                        <li class="breadcrumb-item active text-dark fw-bold" id="currentPage" aria-current="page"></li>
+                    </ol>
+                </div>
+        
+                <!-- Navbar Toggler for Mobile -->
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+        
+                <!-- Navbar Links -->
+                <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <button type="submit" class="btn btn-danger fw-semibold">Sign Out</button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container main-content mt-4">
+            {% block body %}{% endblock %}
+        </div>
+        
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+<script>
+    let pathSegments = window.location.pathname.split('/').filter(Boolean);  
+    let lastSegment = pathSegments[pathSegments.length - 1];
+    let formattedSegment = lastSegment.charAt(0).toUpperCase() + lastSegment.slice(1);
+  
+    document.getElementById("currentPage").textContent = formattedSegment;
+  </script>
+
+
+<script>
+    function downloadFile(url, filename, token) {
+        const xhr = new XMLHttpRequest();
+    
+        xhr.open('GET', url, true);
+        xhr.setRequestHeader('Authorization', token); // Replace with your actual token
+        xhr.responseType = 'blob';
+    
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                const blob = new Blob([xhr.response], { type: xhr.getResponseHeader('Content-Type') });
+                const downloadUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = filename || url.split('/').pop(); // ✅ Now "filename" is correctly used
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(downloadUrl);
+            } else {
+                console.error('File download failed:', xhr.statusText);
+            }
+        };
+    
+        xhr.onerror = function() {
+            console.error('An error occurred during the request.');
+        };
+    
+        xhr.send();
+    }
+    
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle file download button clicks
+    document.querySelectorAll('.file-name').forEach(function(link) {
+        link.addEventListener('click', function(event) {
+            event.preventDefault(); // Prevent default action
+            const url = link.getAttribute('data-url');
+            const filename = link.getAttribute('data-filename'); // Get filename from data attribute
+            downloadFile(url, filename);
+        });
+    });
+});
+
+function CopyMe(TextToCopy) {
+  var TempText = document.createElement("input");
+  TempText.value = TextToCopy;
+  document.body.appendChild(TempText);
+  TempText.select();
+  
+  document.execCommand("copy");
+  document.body.removeChild(TempText);
+  
+  alert("Copied the text: " + TempText.value);
+}
+
+</script>
+
+
+</html>

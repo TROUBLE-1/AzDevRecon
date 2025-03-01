@@ -1,0 +1,99 @@
+{% extends "devops_projects/layout.html" %}
+
+{% block body %}
+
+<div class="d-flex">
+    <div id="repos-list" class="w-25 p-3 border">
+        <h3>Pipelines</h3>
+        <ul id="pipelines" class="list-group">
+            {% for pipeline in pipelines %}
+                <li id="pipeline-{{ pipeline.id }}" class="list-group-item d-flex justify-content-between align-items-center">
+                    <a href="#" class="repo-name nav-link" onclick="fetchPipelineYaml('{{ pipeline.id }}', this)">{{ pipeline.name }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div id="commits-list" class="w-75 p-3 border">
+        <h3>Pipeline Details</h3>
+        <div id="pipeline-details" class="p-3 bg-light border mb-3">
+            <p><strong>Repository:</strong> <span id="repo-name"></span></p>
+            <p><strong>Branch:</strong> <span id="repo-branch"></span></p>
+            <p><strong>Authored By:</strong> <span id="authored-by"></span></p>
+            <p>
+                <strong>Links:</strong> <br>
+                <b>Editor: </b><span id="editor-link"></span> <br>
+                <b>Web: </b><span id="web-link"></span>
+            </p>
+        </div>
+        <h4>Pipeline YAML</h4>
+        <pre id="pipeline-yaml" class="bg-light p-3 border" style="height: 600px; overflow-y: scroll;"></pre>
+    </div>
+</div>
+
+<script>
+
+const reposLink = document.getElementById('pipelines-menu');
+    if (reposLink) {
+        reposLink.classList.add('active');
+    }
+
+    const filesLink = document.getElementById('pipelines-link');
+    if (filesLink) {
+        filesLink.classList.add('active');
+    }
+
+    async function fetchPipelineYaml(ID, element) {
+        try {
+            // Highlight the clicked pipeline
+            const allPipelines = document.querySelectorAll('.list-group-item');
+            allPipelines.forEach(item => item.classList.remove('active'));
+            element.closest('li').classList.add('active');
+
+            // Fetch the YAML and metadata from the backend
+            const pipeline_url = "{{ url_for('get_pipeline_yaml', org_id=org_id, project_id=project_id) }}";
+            const response = await fetch(`${pipeline_url}?id=${encodeURIComponent(ID.toString())}`);
+            if (!response.ok) {
+                throw new Error(`Error fetching details: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+
+            // Update the pipeline details
+            document.getElementById('repo-name').textContent = data.repository.name || 'N/A';
+            document.getElementById('repo-branch').textContent = data.branch || 'N/A';
+            document.getElementById('authored-by').textContent = data.definition.authoredBy.displayName || 'N/A';
+            document.getElementById('editor-link').textContent = data.definition._links.editor.href || 'No link available';
+            document.getElementById('web-link').textContent = data.definition._links.web.href || 'No link available';
+
+
+            // Update the YAML content
+            document.getElementById('pipeline-yaml').textContent = data.content || 'No YAML content available.';
+        } catch (error) {
+            console.error('Failed to fetch pipeline details:', error);
+            document.getElementById('pipeline-yaml').textContent = 'Error loading pipeline details. Please try again later.';
+        }
+    }
+</script>
+
+<style>
+    
+    .list-group-item {
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    .list-group-item:hover {
+        background-color: #c8c8c8;
+        color: #000000;
+    }
+
+    .list-group-item.active {
+        background-color: #c9c9c9;
+        color: white;
+    }
+
+    .list-group-item.active:hover {
+        background-color: #8d8d8d;
+    }
+</style>
+
+{% endblock %}

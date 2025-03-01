@@ -1,0 +1,161 @@
+{% extends "devops_projects/layout.html" %}
+
+{% block body %}
+
+<style>
+    .container {
+        display: flex;
+        height: 100%;
+        gap: 1rem;
+    }
+
+    #repos-list, #commits-list {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 1rem;
+        background-color: #f9f9f9;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    #repos-list {
+        width: 30%;
+    }
+
+    #commits-list {
+        width: 70%;
+    }
+
+    #repos-list h3, #commits-list h3 {
+        margin-bottom: 1rem;
+        color: #333;
+    }
+
+    #repos-list ul {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    #repos-list ul li {
+        padding: 0.5rem;
+        margin-bottom: 0.5rem;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    #repos-list ul li:hover {
+        background: #e6f7ff;
+        border-color: #91d5ff;
+    }
+
+    .details {
+        display: none;
+    }
+
+    .details.active {
+        display: block;
+    }
+
+    .details p {
+        margin: 0.5rem 0;
+    }
+
+    .variables {
+        margin-top: 1rem;
+    }
+
+    .variables ul {
+        margin-left: 1rem;
+        list-style-type: disc;
+    }
+
+    /* Ensure global buttons like Sign Out remain consistent */
+    button.btn {
+        border: none; /* Reset any border added elsewhere */
+    }
+
+    button.btn-danger {
+        background-color: #dc3545;
+        color: #fff;
+    }
+
+    button.btn-danger:hover {
+        background-color: #c82333;
+    }
+</style>
+
+
+<div class="container">
+    <!-- Variable Groups List -->
+    <div id="repos-list">
+        <h3>Variable Groups</h3>
+        {% if pipelines.count > 0 %}
+            <ul id="variable-groups">
+                {% for group in pipelines.value %}
+                    <li data-id="{{ group.id }}" class="variable-group-item">
+                        <strong>{{ group.name }}</strong>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No variable groups found.</p>
+        {% endif %}
+    </div>
+
+    <!-- Properties Section -->
+    <div id="commits-list">
+        <h3>Properties</h3>
+        <div id="group-details">
+            <p>Select a variable group to view its details.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    const reposLink = document.getElementById('pipelines-menu');
+    if (reposLink) {
+        reposLink.classList.add('active');
+    }
+
+    const filesLink = document.getElementById('library-link');
+    if (filesLink) {
+        filesLink.classList.add('active');
+    }
+
+    // JavaScript for interactivity
+    const groups = document.querySelectorAll('.variable-group-item');
+    const groupDetails = document.getElementById('group-details');
+    const pipelineData = {{ pipelines|tojson }};
+
+    groups.forEach(group => {
+        group.addEventListener('click', () => {
+            const groupId = group.dataset.id;
+            const selectedGroup = pipelineData.value.find(g => g.id == groupId);
+
+            if (selectedGroup) {
+                groupDetails.innerHTML = `
+                    <h4>${selectedGroup.name}</h4>
+                    <p><strong>Description:</strong> ${selectedGroup.description || 'No description'}</p>
+                    <p><strong>Created By:</strong> ${selectedGroup.createdBy.displayName} (${selectedGroup.createdBy.uniqueName})</p>
+                    <p><strong>Created On:</strong> ${new Date(selectedGroup.createdOn).toLocaleString()}</p>
+                    <p><strong>Modified By:</strong> ${selectedGroup.modifiedBy.displayName} (${selectedGroup.modifiedBy.uniqueName})</p>
+                    <p><strong>Modified On:</strong> ${new Date(selectedGroup.modifiedOn).toLocaleString()}</p>
+                    <p><strong>Is Shared:</strong> ${selectedGroup.isShared ? 'Yes' : 'No'}</p>
+                    <div class="variables">
+                        <strong>Variables:</strong>
+                        <ul>
+                            ${Object.entries(selectedGroup.variables).map(([key, value]) => `
+                                <li>${key}: ${value.value}</li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+        });
+    });
+</script>
+
+{% endblock %}

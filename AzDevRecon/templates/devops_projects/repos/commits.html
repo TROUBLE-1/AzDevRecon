@@ -1,0 +1,115 @@
+{% extends "devops_projects/layout.html" %}
+
+{% block body %}
+
+<div class="d-flex">
+    <div id="repos-list" class="w-25 p-3 border">
+        <h3>Repositories</h3>
+        <ul id="repos" class="list-group"></ul>
+    </div>
+    <div id="commits-list" class="w-75 p-3 border">
+        <h3>Commits</h3>
+        <ul id="commits" class="list-group"></ul>
+    </div>
+</div>
+
+<div class="modal fade" id="codeModal" tabindex="-1" aria-labelledby="codeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="codeModalLabel">Commit Changes</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <pre id="codeChanges" class="bg-light p-3"></pre>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<style>
+    .list-group-item {
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    .list-group-item:hover {
+        background-color: #c8c8c8;
+        color: #000000;
+    }
+
+    .list-group-item.active {
+        background-color: #a1a1a1;
+        color: white;
+    }
+
+    .list-group-item.selected {
+        background-color: #a1a1a1;
+        color: white;
+    }
+</style>
+
+<script>
+    const reposLink = document.getElementById('repos-menu');
+    if (reposLink) {
+        reposLink.classList.add('active');
+    }
+
+    const filesLink = document.getElementById('commits-link');
+    if (filesLink) {
+        filesLink.classList.add('active');
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        fetch("{{ url_for('list_repositories', org_id=org_id, project_id=project_id) }}")
+            .then(response => response.json())
+            .then(data => {
+                const reposList = document.getElementById('repos');
+                data.forEach(repo => {
+                    const li = document.createElement('li');
+                    li.classList.add('list-group-item');
+                    li.textContent = repo.name;
+                    li.dataset.repoId = repo.id;
+                    li.addEventListener('click', () => {
+                        document.querySelectorAll('#repos .list-group-item').forEach(item => item.classList.remove('selected'));
+                        li.classList.add('selected');
+
+                        fetch("{{ url_for('list_commits', org_id=org_id, project_id=project_id) }}" + "?repoId=" + repo.id)
+                            .then(response => response.json())
+                            .then(commits => {
+                                const commitsList = document.getElementById('commits');
+                                commitsList.innerHTML = '';
+                                commits.forEach(commit => {
+                                    const commitLi = document.createElement('li');
+                                    commitLi.classList.add('list-group-item');
+                                    commitLi.textContent = `${commit.message} - ${commit.author}`;
+                                    commitLi.addEventListener('click', () => {
+                                        document.querySelectorAll('#commits .list-group-item').forEach(item => item.classList.remove('active'));
+                                        commitLi.classList.add('active');
+
+                                        fetch("{{ url_for('get_commit_changes', org_id=org_id, project_id=project_id) }}" + "?commitId=" + commit.id + "&repoId=" + repo.id)
+                                            .then(response => response.json())
+                                            .then(data => {
+                                                const codeChanges = document.getElementById('codeChanges');
+                                                codeChanges.textContent = data.changes;
+
+                                                const codeModalLabel = document.getElementById('codeModalLabel');
+                                                codeModalLabel.textContent = data.file_path;
+                                                const modal = new bootstrap.Modal(document.getElementById('codeModal'));
+                                                modal.show();
+                                            });
+                                    });
+                                    commitsList.appendChild(commitLi);
+                                });
+                            });
+                    });
+                    reposList.appendChild(li);
+                });
+            });
+
+    });
+</script>
+{% endblock %}

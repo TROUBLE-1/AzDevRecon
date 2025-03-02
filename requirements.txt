@@ -1,0 +1,13 @@
+Flask==2.1.0
+flask_sqlalchemy==2.5.1
+sqlalchemy==1.4.39
+Flask-Bcrypt
+Flask-Login
+Flask-WTF
+Flask-SocketIO==4.2.1
+psycopg2
+requests
+numpy
+werkzeug==2.0.3
+WTForms
+jinja2==3.0.1

@@ -87,7 +87,7 @@
     <div class="container mt-5">
         <h1 class="text-center text-primary">Projects</h1>
         <h3 class="text-center text-secondary">Organization: {{ organization_name }}</h3>
-
+    
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
         <div class="mt-3">
@@ -99,25 +99,69 @@
         </div>
         {% endif %}
         {% endwith %}
-
-        <div class="project-list">
-            {% for project in projects["value"] %}
-            <div class="project-item">
-                <div>
-                    <a href="{{url_for('project_dashboard', org_id=organization_name, project_id=project.id)}}" class="project-title">{{ project.name }}</a>
-                    <p class="mb-0"><strong>Project ID:</strong> {{ project.id }}</p>
+    
+        <div class="d-flex">
+            <div class="project-list w-50">
+                {% for project in projects["value"] %}
+                <div class="project-item d-flex justify-content-between align-items-center border p-2 mb-2">
+                    <div>
+                        <a href="{{ url_for('project_dashboard', org_id=organization_name, project_id=project.id) }}" class="project-title">{{ project.name }}</a>
+                        <p class="mb-0"><strong>Project ID:</strong> {{ project.id }}</p>
+                    </div>
+                    <div class="project-actions">
+                        <a href="{{ url_for('project_dashboard', org_id=organization_name, project_id=project.id) }}" class="btn btn-primary">View</a>
+                        <button class="btn btn-secondary" onclick='showDetails({{ project|tojson(indent=2)|safe }})'>JSON</button>
+                    </div>
                 </div>
-                <div class="project-actions">
-                    <a href="{{url_for('project_dashboard', org_id=organization_name, project_id=project.id)}}" class="btn btn-view">View</a>
-                    
-                    <button class="btn btn-details"  onclick='showDetails({{ project|tojson(indent=2)|safe }})'>Json Body</button>
+                {% else %}
+                <p class="text-center text-muted">No projects found for this organization.</p>
+                {% endfor %}
+            </div>
+            
+            <div class="project-details-table border p-3 mg-3">
+                <h4 class="text-center">Members & Service Principals</h4>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Principal</th>
+                            <th>Status</th>
+                            <th>Access Level</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="projectDetailsTableBody">
+                        {% for item in members_data["items"] %}
+                        <tr>
+                            <td>{{ item.member.displayName }}</td>
+                            <td>{{ item.member.principalName }}</td>
+                            <td>{{ item.accessLevel.status }}</td>
+                            <td>{{ item.accessLevel.licenseDisplayName }}</td>
+                            <td>
+                                <button class="btn btn-info btn-sm" onclick='showDetails({{ item|tojson(indent=2)|safe }})'>JSON</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {{all_permissions}}
+    <!-- Modal for JSON Details -->
+    <div class="modal fade" id="jsonModal" tabindex="-1" aria-labelledby="jsonModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="jsonModalLabel">Details</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <pre id="jsonContent"></pre>
                 </div>
             </div>
-        {% else %}
-            <p class="text-center text-muted">No projects found for this organization.</p>
-        {% endfor %}
-        
-
         </div>
     </div>
 

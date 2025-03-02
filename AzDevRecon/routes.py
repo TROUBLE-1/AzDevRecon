@@ -69,7 +69,25 @@ def view_projects(org_id):
     projects = list_projects(org_name.organization_name, org_name.token)
     if projects[0] == False:
         flash(projects[1], "danger")
-    return render_template("projectslist.html", organization_name=org_name.organization_name, projects=projects[1], json=json)
+
+    org_users = get_org_users(org_name.organization_name, org_name.token)
+    if org_users[0] == False:
+        org_users = []
+    else:
+        org_users = org_users[1]    
+    
+    
+    return render_template("projectslist.html", organization_name=org_name.organization_name, projects=projects[1], json=json, members_data=org_users)
+
+
+@app.route("/azure/devops/<org_id>/<project>/permissions", methods=["GET", "POST"])
+@login_required
+def view_project_permissions(org_id, project):
+    org_name = AccessTokenSubmission.query.filter_by(organization_name=org_id, user_id=current_user.id).first()
+    
+    all_permissions = get_project_permissions(org_name.organization_name, project, org_name.token)
+
+    return render_template("devops_projects/all_permissions.html", all_permissions=all_permissions)
 
 @app.route("/azure/devops/<org_id>/projects/<project_id>", methods=["GET", "POST"])
 @login_required
@@ -249,7 +267,7 @@ def get_pipeline_library(org_id, project_id):
     return render_template("devops_projects/pipelines/library.html",org_id=org_id, project_id=project_id, pipelines=pipelines)
 
 
-@app.route("/signout", methods=["POST"])
+@app.route("/signout", methods=["POST", "GET"])
 def signout():
     logout_user()
     flash('Account Successfully Sign Out', 'success')

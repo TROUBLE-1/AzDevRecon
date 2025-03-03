@@ -23,7 +23,7 @@ AzDevRecon is a **web-based enumeration tool** designed for **offensive security
 1. **Clone the repository:**
 
    ```sh
-   git clone https://github.com/yourusername/AzDevRecon.git
+   git clone https://github.com/TROUBLE-1/AzDevRecon.git
    cd AzDevRecon
    ```
 

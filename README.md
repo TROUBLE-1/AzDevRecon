@@ -64,6 +64,12 @@ AzDevRecon is a **web-based enumeration tool** designed for **offensive security
 
 ---
 
+## More Info
+
+- Check out the [wiki](https://github.com/TROUBLE-1/AzDevRecon/wiki) for more information of the tool.
+
+---
+
 ## Disclaimer
 
 **AzDevRecon is intended for educational and authorized security testing purposes only.** Unauthorized use against systems without permission is illegal and strictly prohibited. Use responsibly!

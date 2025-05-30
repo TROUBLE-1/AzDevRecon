@@ -157,10 +157,13 @@
                     aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-        
+                
                 <!-- Navbar Links -->
                 <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
                     <ul class="navbar-nav">
+                        <a id="permissions-link" href="" class="mr-2">
+                            <button type="submit" class="btn btn-secondary fw-semibold">Permissions</button>
+                        </a>
                         <li class="nav-item">
                             <a href="/signout"><button type="submit" class="btn btn-danger fw-semibold">Sign Out</button></a>
                         </li>
@@ -178,6 +181,17 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+<script>
+    let currentUrl = window.location.href;
+    let match = currentUrl.match(/azure\/devops\/([^\/]+)\/projects\/([^\/]+)/);
+    if (match) {
+        let orgName = match[1];  // Extracted organization name
+        let projectId = match[2]; // Extracted project ID
+        let permissionsUrl = `http://localhost/azure/devops/${orgName}/projects/${projectId}/permissions`;
+        document.getElementById("permissions-link").href = permissionsUrl;
+    }
+</script>
+
 <script>
     let pathSegments = window.location.pathname.split('/').filter(Boolean);  
     let lastSegment = pathSegments[pathSegments.length - 1];

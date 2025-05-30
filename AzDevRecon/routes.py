@@ -80,14 +80,14 @@ def view_projects(org_id):
     return render_template("projectslist.html", organization_name=org_name.organization_name, projects=projects[1], json=json, members_data=org_users)
 
 
-@app.route("/azure/devops/<org_id>/<project>/permissions", methods=["GET", "POST"])
+@app.route("/azure/devops/<org_id>/projects/<project>/permissions", methods=["GET", "POST"])
 @login_required
 def view_project_permissions(org_id, project):
     org_name = AccessTokenSubmission.query.filter_by(organization_name=org_id, user_id=current_user.id).first()
     
     all_permissions = get_project_permissions(org_name.organization_name, project, org_name.token)
 
-    return render_template("devops_projects/all_permissions.html", all_permissions=all_permissions)
+    return render_template("devops_projects/all_permissions.html", all_permissions=all_permissions, project_name=project)
 
 @app.route("/azure/devops/<org_id>/projects/<project_id>", methods=["GET", "POST"])
 @login_required

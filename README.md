@@ -23,7 +23,7 @@ AzDevRecon is a **web-based enumeration tool** designed for **offensive security
 1. **Clone the repository:**
 
    ```sh
-   git clone https://github.com/yourusername/AzDevRecon.git
+   git clone https://github.com/TROUBLE-1/AzDevRecon.git
    cd AzDevRecon
    ```
 
@@ -61,6 +61,12 @@ AzDevRecon is a **web-based enumeration tool** designed for **offensive security
 
 - Python 3.x
 - Required dependencies (installed via `requirements.txt`)
+
+---
+
+## More Info
+
+- Check out the [wiki](https://github.com/TROUBLE-1/AzDevRecon/wiki) for more information of the tool.
 
 ---
 

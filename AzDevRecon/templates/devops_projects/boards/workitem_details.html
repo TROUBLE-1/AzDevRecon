@@ -1,0 +1,10 @@
+<!-- devops_projects/boards/workitem_details.html -->
+<div>
+    <p><strong>Title:</strong> {{ workitem['fields']['System.Title'] }}</p>
+    <p><strong>Type:</strong> {{ workitem['fields']['System.WorkItemType'] }}</p>
+    <p><strong>State:</strong> {{ workitem['fields']['System.State'] }}</p>
+    <p><strong>Description:</strong></p>
+    <div style="border:1px solid #ccc; padding: 10px;">
+        {{ workitem['fields'].get('System.Description', 'No description') | safe }}
+    </div>
+</div>

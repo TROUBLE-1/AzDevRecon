@@ -99,13 +99,13 @@
             <span style="padding-left: 10px;">Boards</span>
         </a>
         <div id="boards-submenu" class="">
-            <a id="work-items-link" href="#">Work Items</a>
-            <a id="boards-link" href="#">Boards</a>
+            <a id="work-items-link" href="{{ url_for('workitems', org_id=org_id, project_id=project_id) }}">Work Items</a>
+            <!-- <a id="boards-link" href="#">Boards</a>
             <a id="backlogs-link" href="#">Backlogs</a>
             <a id="sprints-link" href="#">Sprints</a>
             <a id="queries-link" href="#">Queries</a>
             <a id="delivery-plans-link" href="#">Delivery Plans</a>
-            <a id="analytics-view-link" href="#">Analytics View</a>
+            <a id="analytics-view-link" href="#">Analytics View</a> -->
         </div>
         <a id="repos-menu">
             <img alt="" src="https://cdn.vsassets.io/ext/ms.vss-code-web/common-content/Nav-Code.0tJczm.png" height="30">
@@ -127,15 +127,15 @@
             <a id="pipelines-link" href="{{ url_for('get_pipeline', org_id=org_id, project_id=project_id) }}">Pipelines</a>
             <a id="library-link" href="{{ url_for('get_pipeline_library', org_id=org_id, project_id=project_id) }}">Library</a>
         </div>
-        <a id="test-plans-menu">
+        <!-- <a id="test-plans-menu">
             <img alt="" src="https://cdn.vsassets.io/ext/ms.vss-test-web/common-content/Nav-Test.CLbC8L.png" height="30">
             <span style="padding-left: 10px;">Test Plans</span>
-        </a>
-        <div id="test-plans-submenu" class="">
+        </a> -->
+        <!-- <div id="test-plans-submenu" class="">
             <a id="test-plans-link" href="#">Test Plans</a>
             <a id="progress-report-link" href="#">Progress Report</a>
             <a id="runs-link" href="#">Runs</a>
-        </div>
+        </div> -->
     </div>
 
     <!-- Main Content -->

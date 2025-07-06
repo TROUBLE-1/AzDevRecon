@@ -38,12 +38,12 @@ def add_submission(token, organization_name, user_id):
         new_submission = AccessTokenSubmission(user_id=user_id, token=token, organization_name=organization_name )
 
         # Add to database and commit
-        db.session.add(new_submission)
-        db.session.commit()
+        db.session.add(new_submission)  # type: ignore
+        db.session.commit()  # type: ignore
         
         return "success", "Token submitted successfully!"
     except Exception as e:
-        db.session.rollback()  # Rollback in case of any errors
+        db.session.rollback()  # type: ignore  # Rollback in case of any errors
         print(e)
         return "danger", (f"Failed to add submission: {e}")
 
@@ -67,7 +67,7 @@ def list_repos(org_name, project_name,token):
     return restAPI(url, token)
 
 def list_repo_items(org_name, project_name, repo_id, token):
-    url = f"https://dev.azure.com/{org_name}/{project_name}/_apis/git/repositories/{repo_id}/items?recursionLevel=Full&api-version=7.1"
+    url = f"https://dev.azure.com/{org_name}/{project_name}/_apis/git/repositories/{repo_id}/items?recursionLevel=1&api-version=7.1"
     return restAPI(url, token)
 
 
@@ -134,9 +134,51 @@ def get_project_permissions(org_name, project, token):
     
     return groups
 
-token = "Basic OkcxM1l4c0pQNUoyOHRPaW40UTZDbXRzYk1FTkp2bTRhNll6eXVSd0FHYlZ5a3BHVFo3cndKUVFKOTlCQ0FDQUFBQUFGallDVkFBQVNBWkRPNEZEeg=="
-org_name= "asgasga4t24t"
-project = "wkl-prod"
+
+import requests
+
+def get_project_workitems(org_name, project_name, token, work_item_type=None, state=None, assigned_to=None):
+    wiql_query = "SELECT [System.Id] FROM WorkItems"
+
+    wiql_body = { "query": wiql_query }
+
+    wiql_url = f"https://dev.azure.com/{org_name}/{project_name}/_apis/wit/wiql?api-version=7.1"
+    wiql_response = requests.post(wiql_url, json=wiql_body, headers={"Authorization": token})
+
+    if wiql_response.status_code != 200:
+        return False, f"Failed to query work items: {wiql_response.status_code}"
+
+    wiql_data = wiql_response.json()
+    work_items = wiql_data.get('workItems', [])
+
+    if not work_items:
+        return True, []
+
+    work_item_ids = [str(item['id']) for item in work_items]
+
+    all_details = []
+    batch_size = 200
+
+    for i in range(0, len(work_item_ids), batch_size):
+        batch_ids = work_item_ids[i:i+batch_size]
+        url = (
+            f"https://dev.azure.com/{org_name}/{project_name}/_apis/wit/workitems"
+            f"?ids={','.join(batch_ids)}&$expand=all&api-version=7.1"
+        )
+        response = requests.get(url, headers={"Authorization": token})
+
+        if response.status_code != 200:
+            return False, f"Failed to get work item details for batch starting at index {i}: {response.status_code}"
+
+        items = response.json().get('value', [])
+        all_details.extend(items)
+
+    return True, all_details
 
 
-get_project_permissions(org_name, project, token)
+
+def get_work_item_by_id(org_name, project_name, work_item_id, token):
+
+    url = f"https://dev.azure.com/{org_name}/{project_name}/_apis/wit/workItems/{work_item_id}?$expand=all&api-version=7.1"
+    return restAPI(url, token)
+

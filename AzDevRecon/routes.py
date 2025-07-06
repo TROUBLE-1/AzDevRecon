@@ -33,15 +33,20 @@ def login():
 def register():
     form = RegistrationForm()
     if form.validate_on_submit():
+        # Check if user already exists
+        existing_user = User.query.filter_by(username=form.username.data).first()
+        if existing_user:
+            flash('Username already exists! Please choose a different username.', 'danger')
+            return render_template('register.html', title='Register', form=form)
+        
         hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
         id = uuid.uuid4().hex
         user = User(id=id, username=form.username.data, password=hashed_password)
-        db.session.add(user)
-        db.session.commit()
+        db.session.add(user)  # type: ignore
+        db.session.commit()  # type: ignore
         flash('Your account has been created!', 'success')
         return redirect(url_for('login'))
     return render_template('register.html', title='Register', form=form)
-
 
 @app.route("/azure/devops/dashboard", methods=["GET", "POST"])
 @login_required
@@ -123,11 +128,29 @@ def list_repo_files(org_id, project_id, repo_id):
 def delete_org_by_id(org_id):
     try:
         AccessTokenSubmission.query.filter_by(id=org_id, user_id=current_user.id).delete()
-        db.session.commit()
+        db.session.commit()  # type: ignore
         flash(f"ID: {org_id} Deleted!", "success")
     except:
         pass
     return redirect(url_for('dashboard'))
+
+
+@app.route("/azure/devops/<org_id>/projects/<project_id>/workitems", methods=["GET", "POST"])
+@login_required
+def workitems(org_id, project_id):
+    org_name = AccessTokenSubmission.query.filter_by(organization_name=org_id, user_id=current_user.id).first()
+    workitems = get_project_workitems(org_name.organization_name, project_id, org_name.token, work_item_type="Bug", state="New", assigned_to="")
+    
+    return render_template("devops_projects/boards/workitems.html", org_id=org_id, project_id=project_id, workitems=workitems[1])
+
+@app.route("/azure/devops/<org_id>/projects/<project_id>/workitems/<work_item_id>", methods=["GET", "POST"])
+@login_required
+def workitem_details(org_id, project_id, work_item_id):
+    org_name = AccessTokenSubmission.query.filter_by(organization_name=org_id, user_id=current_user.id).first()
+    workitem = get_work_item_by_id(org_name.organization_name, project_id, work_item_id, org_name.token)
+    
+    return render_template("devops_projects/boards/workitem_details.html", org_id=org_id, project_id=project_id, workitem=workitem)
+
 
 
 @app.route("/azure/devops/<org_id>/projects/<project_id>/commits", methods=["GET", "POST"])
@@ -143,11 +166,13 @@ def list_repositories(org_id, project_id):
     org_name = AccessTokenSubmission.query.filter_by(organization_name=org_id, user_id=current_user.id).first()
     url = f"https://dev.azure.com/{org_id}/{project_id}/_apis/git/repositories?api-version=6.0"
     response = requests.get(url, headers={"Authorization": f"{org_name.token}"})
+
     if response.status_code == 200:
         repos = response.json().get('value', [])
         return jsonify([{'id': repo['id'], 'name': repo['name']} for repo in repos])
     else:
         return jsonify({'error': 'Failed to fetch repositories'}), response.status_code
+
 
 @app.route('/azure/devops/<org_id>/projects/<project_id>/repos/commits', methods=['GET'])
 def list_commits(org_id, project_id):

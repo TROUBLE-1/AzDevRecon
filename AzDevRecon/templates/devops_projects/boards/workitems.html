@@ -1,0 +1,129 @@
+{% extends "devops_projects/layout.html" %}
+
+{% block body %}
+
+<!-- Bootstrap 5 JS + Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<div class="container mt-4">
+    <h2>Azure DevOps Work Items</h2>
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Type</th>
+                    <th>State</th>
+                    <th>Priority</th>
+                    <th>Created By</th>
+                    <th>Created Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in workitems %}
+                    <tr>
+                        <td>{{ item.id }}</td>
+                        <td>{{ item.fields['System.Title'] }}</td>
+                        <td>{{ item.fields['System.WorkItemType'] }}</td>
+                        <td>{{ item.fields['System.State'] }}</td>
+                        <td>{{ item.fields.get('Microsoft.VSTS.Common.Priority', 'N/A') }}</td>
+                        <td>{{ item.fields['System.CreatedBy']['displayName'] }}</td>
+                        <td>{{ item.fields['System.CreatedDate'][:10] }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#workItemModal"
+                                    data-workitem='{{ item | tojson | safe }}'
+                                    onclick="showWorkItemDetails(this)">
+                                View
+                            </button>
+
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="workItemModal" tabindex="-1" aria-labelledby="workItemModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="workItemModalLabel">Work Item Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p><strong>ID:</strong> <span id="modal-id"></span></p>
+        <p><strong>Title:</strong> <span id="modal-title"></span></p>
+        <p><strong>Type:</strong> <span id="modal-type"></span></p>
+        <p><strong>State:</strong> <span id="modal-state"></span></p>
+        <p><strong>Priority:</strong> <span id="modal-priority"></span></p>
+        <p><strong>Severity:</strong> <span id="modal-severity"></span></p>
+        <p><strong>Value Area:</strong> <span id="modal-valuearea"></span></p>
+        <p><strong>Repro Steps:</strong> <div class="modal-block" id="modal-reprosteps"></div></p>
+        <p><strong>System Info:</strong> <div class="modal-block" id="modal-systeminfo"></div></p>
+        <p><strong>Acceptance Criteria:</strong> <div class="modal-block" id="modal-acceptance"></div></p>
+        <p><strong>History:</strong> <div class="modal-block" id="modal-history"></div></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Styles -->
+<style>
+    body {
+        background-color: #f7f7f7;
+    }
+
+    .container {
+        background: #fff;
+        padding: 2rem;
+        border-radius: 8px;
+    }
+
+    table th, table td {
+        font-size: 0.95rem;
+    }
+
+    .modal-block {
+        border: 1px solid #ccc;
+        padding: 10px;
+        background: #f8f9fa;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+</style>
+
+<!-- Script -->
+<script>
+function showWorkItemDetails(button) {
+    try {
+        const item = JSON.parse(button.getAttribute('data-workitem'));
+        const fields = item.fields;
+
+        document.getElementById('modal-id').textContent = item.id || 'N/A';
+        document.getElementById('modal-title').textContent = fields["System.Title"] || 'N/A';
+        document.getElementById('modal-type').textContent = fields["System.WorkItemType"] || 'N/A';
+        document.getElementById('modal-state').textContent = fields["System.State"] || 'N/A';
+        document.getElementById('modal-priority').textContent = fields["Microsoft.VSTS.Common.Priority"] || 'N/A';
+        document.getElementById('modal-severity').textContent = fields["Microsoft.VSTS.Common.Severity"] || 'N/A';
+        document.getElementById('modal-valuearea').textContent = fields["Microsoft.VSTS.Common.ValueArea"] || 'N/A';
+
+        document.getElementById('modal-reprosteps').innerHTML = fields["Microsoft.VSTS.TCM.ReproSteps"] || '<em>No repro steps provided.</em>';
+        document.getElementById('modal-systeminfo').innerHTML = fields["Microsoft.VSTS.TCM.SystemInfo"] || '<em>No system info.</em>';
+        document.getElementById('modal-acceptance').innerHTML = fields["Microsoft.VSTS.Common.AcceptanceCriteria"] || '<em>No criteria defined.</em>';
+        document.getElementById('modal-history').innerHTML = fields["System.History"] || '<em>No history available.</em>';
+    } catch (error) {
+        console.error("Failed to parse work item data:", error);
+        alert("Error displaying work item details.");
+    }
+}
+</script>
+
+{% endblock %}

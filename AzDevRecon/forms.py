@@ -1,8 +1,7 @@
 from flask_login import current_user
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField
-from wtforms import StringField, IntegerField, PasswordField, SubmitField, BooleanField, TextAreaField
-from wtforms.fields.html5 import EmailField
+from wtforms import StringField, IntegerField, PasswordField, SubmitField, BooleanField, TextAreaField, EmailField
 from wtforms.fields.simple import HiddenField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError, IPAddress
 from AzDevRecon import app, db

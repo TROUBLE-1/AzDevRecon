@@ -12,7 +12,7 @@ def identify_token_type(token):
 
 def check_if_token_is_valid(token, organization):
     headers = {"Authorization": token}
-    url = f"https://dev.azure.com/{organization}/_apis/?api-version=7.1"
+    url = f"https://dev.azure.com/{organization}/_apis/projects/?api-version=7.1"
     res = requests.get(url, headers=headers)
     return True if res.status_code == 200  else  False
 
@@ -20,11 +20,12 @@ def add_submission(token, organization_name, user_id):
 
     identify_token = identify_token_type(token)
     if identify_token == "PAT":
-        pat = f":{token}"
+        pat = f"{token}:"
         pat_string_bytes = pat.encode("ascii")
         base64_bytes = base64.b64encode(pat_string_bytes)
         base64_token = base64_bytes.decode("ascii")
         token = f"Basic {base64_token}"
+        
     elif identify_token == "Token":
         token = f"Bearer {token}"
     else:

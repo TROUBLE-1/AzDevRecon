@@ -20,7 +20,7 @@ def add_submission(token, organization_name, user_id):
 
     identify_token = identify_token_type(token)
     if identify_token == "PAT":
-        pat = f":{token}"
+        pat = f"{token}:"
         pat_string_bytes = pat.encode("ascii")
         base64_bytes = base64.b64encode(pat_string_bytes)
         base64_token = base64_bytes.decode("ascii")

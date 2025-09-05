@@ -7,6 +7,8 @@
 
 AzDevRecon is a **web-based enumeration tool** designed for **offensive security professionals, red teamers, and penetration testers** targeting **Azure DevOps**. It helps identify misconfigurations, exposed secrets, and security gaps by leveraging **token-based authentication** for reconnaissance and data extraction.
 
+🔗 You can also access the tool directly here: [https://azdevrecon.cloud/](https://azdevrecon.cloud/)
+
 ## Features
 
 - **Token-Based Enumeration** – Extract insights using Azure DevOps Access tokens or PAT.
